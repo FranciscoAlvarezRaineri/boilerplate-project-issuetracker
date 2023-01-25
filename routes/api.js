@@ -1,27 +1,31 @@
-'use strict';
+"use strict";
+const Issue = require("../db/index").IssueModel;
 
 module.exports = function (app) {
+  app
+    .route("/api/issues/:project")
 
-  app.route('/api/issues/:project')
-  
-    .get(function (req, res){
+    .get(function (req, res) {
       let project = req.params.project;
-      
     })
-    
-    .post(function (req, res){
+
+    .post(function (req, res) {
       let project = req.params.project;
-      
+      let newIssue = new Issue(req.body);
+      newIssue.save(function (err, issue) {
+        console.log(issue);
+        if (err) {
+          return res.status(204).json({ error: "required field(s) missing" });
+        }
+        res.send(issue);
+      });
     })
-    
-    .put(function (req, res){
+
+    .put(function (req, res) {
       let project = req.params.project;
-      
     })
-    
-    .delete(function (req, res){
+
+    .delete(function (req, res) {
       let project = req.params.project;
-      
     });
-    
 };
