@@ -2,7 +2,7 @@ const chaiHttp = require("chai-http");
 const chai = require("chai");
 const assert = chai.assert;
 const server = require("../server");
-const { before } = require("mocha");
+const { before, after } = require("mocha");
 
 chai.use(chaiHttp);
 
@@ -39,13 +39,13 @@ suite("Functional Tests", function () {
         .send({
           issue_title: "Only Required",
           issue_text: "Only Required Text.",
-          created_by: "Joe",
+          created_by: "Juan",
         })
         .end(function (err, res) {
           assert.equal(res.status, 200);
           assert.equal(res.body.issue_title, "Only Required");
           assert.equal(res.body.issue_text, "Only Required Text.");
-          assert.equal(res.body.created_by, "Joe");
+          assert.equal(res.body.created_by, "Juan");
           assert.equal(res.body.assigned_to, "");
           assert.equal(res.body.status_text, "");
           assert.equal(Date(res.body.created_on), new Date());
@@ -53,7 +53,7 @@ suite("Functional Tests", function () {
         });
     });
     // Create an issue with missing required fields: POST request to /api/issues/{project}
-    test("Create issue-only requiered", function (done) {
+    test("Create issue-missing fields", function (done) {
       chai
         .request(server)
         .post("/api/issues/apitest")
@@ -63,15 +63,47 @@ suite("Functional Tests", function () {
         })
         .end(function (err, res) {
           assert.equal(res.status, 200);
-          assert.equal(res.body, { error: "required field(s) missing" });
+          assert.equal(res.body.error, "required field(s) missing");
           done();
         });
     });
   });
   suite("get", function () {
     // View issues on a project: GET request to /api/issues/{project}
+    test("All issues on a project", function (done) {
+      chai
+        .request(server)
+        .get("/api/issues/apitest")
+        .end(function (err, res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.length, 2);
+          done();
+        });
+    });
     // View issues on a project with one filter: GET request to /api/issues/{project}
+    test("Issues with one filter", function (done) {
+      chai
+        .request(server)
+        .get("/api/issues/apitest?created_by=Joe")
+        .end(function (err, res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.length, 1);
+          assert.equal(res.body[0].issue_title, "New Issue");
+          done();
+        });
+    });
     // View issues on a project with multiple filters: GET request to /api/issues/{project}
+    test("Issues with more filters", function (done) {
+      chai
+        .request(server)
+        .get("/api/issues/apitest?created_by=Joe&assigned_to=Juan")
+        .end(function (err, res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.length, 1);
+          assert.equal(res.body[0].issue_title, "New Issue");
+          done();
+        });
+    });
   });
   suite("put", function () {
     // Update one field on an issue: PUT request to /api/issues/{project}
@@ -84,5 +116,8 @@ suite("Functional Tests", function () {
     // Delete an issue: DELETE request to /api/issues/{project}
     // Delete an issue with an invalid _id: DELETE request to /api/issues/{project}
     // Delete an issue with missing _id: DELETE request to /api/issues/{project}
+  });
+  after(function (done) {
+    chai.request(server).delete("/api/issues/apitest").end(done());
   });
 });

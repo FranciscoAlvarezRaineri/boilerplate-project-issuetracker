@@ -40,6 +40,10 @@ const issue = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  project: {
+    type: String,
+    required: true,
+  },
 });
 
 const Issue = mongoose.model("Issue", issue);
