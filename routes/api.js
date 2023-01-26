@@ -15,7 +15,7 @@ module.exports = function (app) {
       newIssue.save(function (err, issue) {
         console.log(issue);
         if (err) {
-          return res.status(204).json({ error: "required field(s) missing" });
+          return res.send({ error: "required field(s) missing" });
         }
         res.send(issue);
       });
